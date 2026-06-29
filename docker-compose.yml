@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+
+  api:
+
+    build: ./server
+
+    container_name: media-api
+
+    ports:
+      - "3000:3000"
+
+    volumes:
+      - ./server/database:/app/database
+
+    restart: always
+
+
+  frontend:
+
+    build: ./client
+
+    container_name: media-client
+
+    ports:
+      - "8080:80"
+
+    depends_on:
+      - api
+
+    restart: always

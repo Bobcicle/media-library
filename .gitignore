@@ -1,0 +1,23 @@
+# Node
+node_modules/
+
+# Logs
+npm-debug.log*
+
+# Environment files
+.env
+
+# Vue build
+client/dist/
+
+# Database journal files
+*.db-journal
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/
+
+# Docker
+*.log
