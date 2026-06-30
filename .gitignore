@@ -1,23 +1,23 @@
-# Node
+# Dependencies
 node_modules/
-
-# Logs
-npm-debug.log*
-
-# Environment files
-.env
 
 # Vue build
 client/dist/
 
-# Database journal files
-*.db-journal
-
-# macOS
-.DS_Store
-
-# VS Code
-.vscode/
-
-# Docker
+# Logs
 *.log
+npm-debug.log*
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# SQLite temp files
+*.db-journal
