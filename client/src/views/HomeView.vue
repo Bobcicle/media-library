@@ -1,15 +1,20 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import api from "../api/api";
+import { getCategories } from "../api/categoryApi";
 
 const bookmarks = ref([]);
-
+const categories = ref([]);
 const editingId = ref(null);
 
-const form = ref({
+const form = reactive({
   title: "",
   url: "",
   type: "article",
+  description: "",
+  thumbnail: "",
+  favorite: 0,
+  categoryId: null,
 });
 
 async function loadBookmarks() {
@@ -21,78 +26,69 @@ async function loadBookmarks() {
   }
 }
 
-function editBookmark(bookmark) {
+async function loadCategories() {
+  try {
+    categories.value = await getCategories();
+  } catch (error) {
+    console.error(error);
+  }
+}
 
+function editBookmark(bookmark) {
   editingId.value = bookmark.id;
 
-  form.value = {
+  Object.assign(form, {
     title: bookmark.title,
     url: bookmark.url,
-    type: bookmark.type
-  };
-
+    type: bookmark.type,
+    description: bookmark.description || "",
+    thumbnail: bookmark.thumbnail || "",
+    favorite: bookmark.favorite || 0,
+    categoryId: bookmark.categoryId,
+  });
 }
 
 async function deleteBookmark(id) {
-
-  if (!confirm("Delete this bookmark?")) {
-    return;
-  }
+  if (!confirm("Delete this bookmark?")) return;
 
   try {
-
     await api.delete(`/bookmarks/${id}`);
-
     await loadBookmarks();
-
   } catch (error) {
-
     console.error(error);
-
   }
-
 }
 
 async function saveBookmark() {
-
   try {
-
     if (editingId.value) {
-
-      await api.put(
-        `/bookmarks/${editingId.value}`,
-        form.value
-      );
-
+      await api.put(`/bookmarks/${editingId.value}`, form);
     } else {
-
-      await api.post(
-        "/bookmarks",
-        form.value
-      );
-
+      await api.post("/bookmarks", form);
     }
 
     editingId.value = null;
 
-    form.value = {
+    Object.assign(form, {
       title: "",
       url: "",
-      type: "article"
-    };
+      type: "article",
+      description: "",
+      thumbnail: "",
+      favorite: 0,
+      categoryId: null,
+    });
 
     await loadBookmarks();
-
   } catch (error) {
-
     console.error(error);
-
   }
-
 }
 
-
-onMounted(loadBookmarks);
+onMounted(() => {
+  loadBookmarks();
+  loadCategories();
+});
 </script>
 
 <template>
@@ -112,17 +108,33 @@ onMounted(loadBookmarks);
         placeholder="URL"
       />
 
+      <label>Type</label>
+
       <select v-model="form.type">
         <option value="article">Article</option>
         <option value="image">Image</option>
         <option value="video">Video</option>
       </select>
 
+      <label>Category</label>
+
+      <select v-model="form.categoryId">
+        <option :value="null">
+          No Category
+        </option>
+
+        <option
+          v-for="category in categories"
+          :key="category.id"
+          :value="category.id"
+        >
+          {{ category.name }}
+        </option>
+      </select>
+
       <button @click="saveBookmark">
-
-       {{ editingId ? "Update Bookmark" : "Save Bookmark" }}
-
-       </button>
+        {{ editingId ? "Update Bookmark" : "Save Bookmark" }}
+      </button>
 
     </div>
 
@@ -131,29 +143,41 @@ onMounted(loadBookmarks);
       v-for="bookmark in bookmarks"
       :key="bookmark.id"
     >
+
       <h2>{{ bookmark.title }}</h2>
 
-      <a :href="bookmark.url" target="_blank">
+      <a
+        :href="bookmark.url"
+        target="_blank"
+      >
         {{ bookmark.url }}
       </a>
 
-      <p>{{ bookmark.type }}</p>
-     
- <div class="buttons">
+      <p>
+        <strong>Type:</strong>
+        {{ bookmark.type }}
+      </p>
 
-  <button
-    @click="editBookmark(bookmark)"
-  >
-    Edit
-  </button>
+      <p>
+        <strong>Category:</strong>
+        {{
+          categories.find(
+            c => c.id === bookmark.categoryId
+          )?.name || "None"
+        }}
+      </p>
 
-  <button
-    @click="deleteBookmark(bookmark.id)"
-  >
-    Delete
-  </button>
+      <div class="buttons">
 
-</div>
+        <button @click="editBookmark(bookmark)">
+          Edit
+        </button>
+
+        <button @click="deleteBookmark(bookmark.id)">
+          Delete
+        </button>
+
+      </div>
 
     </div>
 

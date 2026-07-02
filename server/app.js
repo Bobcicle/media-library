@@ -5,11 +5,14 @@ const { initializeDatabase } = require("./database/database");
 
 const bookmarkRoutes = require("./routes/bookmarks");
 
+const categoryRoutes = require("./routes/categories");
+
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use("/bookmarks", bookmarkRoutes);
+app.use("/categories", categoryRoutes);
 
 app.get("/", (req, res) => {
   res.send("Media Library API is running!");
